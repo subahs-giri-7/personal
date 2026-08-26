@@ -1,0 +1,46 @@
+Relayless content-sharing protocol
+==================================
+
+Purpose
+-------
+Relayless pairs two browsers with a six-digit code and transfers text or
+arbitrary files in either direction. It is designed for GitHub Pages, so the
+application has no server-side code or private API key.
+
+How pairing works
+-----------------
+1. The sender creates a random six-digit PeerJS peer ID and displays it.
+2. The receiver creates a temporary PeerJS client and connects to that ID.
+3. PeerJS provides free signaling only. The file bytes move through a WebRTC
+   data channel after the connection is established.
+4. The code is a short-lived room address, not authentication. Share it only
+   with the intended receiver and leave the room when finished.
+
+Message format
+--------------
+manifest  { kind, files: [{ id, name, size, type }] }
+request   { kind, id }
+start     { kind, id, name, size, type }
+chunk     { kind, id, data }
+complete  { kind, id }
+
+Files are sent in 16 KiB chunks. Received chunks are assembled into a Blob
+only after the complete message arrives. Text notes are converted to UTF-8
+plain-text files before being sent.
+
+Public API reference
+--------------------
+The project uses the Cloud Storage & File Sharing section of the community
+catalog at https://github.com/public-apis/public-apis as the API reference.
+File.io and similar upload APIs are relay services; this implementation uses
+WebRTC instead so file contents are not intentionally stored by a third party.
+PeerJS's public cloud broker is used only for signaling and is loaded from its
+public CDN. Production deployments should use a self-hosted signaling server,
+short-lived authenticated rooms, file-size limits, and end-to-end encryption.
+
+Deployment
+----------
+Serve over HTTPS through GitHub Pages. WebRTC and clipboard features are
+restricted by browsers on insecure origins. No GitHub token is required for
+sharing. The existing management.html page remains available for repository
+editing, but its GitHub PAT should never be embedded in this application.
