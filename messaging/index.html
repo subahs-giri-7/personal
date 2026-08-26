@@ -30,7 +30,7 @@ async function authenticate(event){event.preventDefault();try{const result=e.aut
 async function googleSignIn(){try{const result=await signInWithPopup(auth,new GoogleAuthProvider());state.user=result.user;await loadProfile(result.user)}catch(error){notify(error.message.replace('Firebase: ',''),true)}}
 e.authForm.onsubmit=authenticate;e.google.onclick=googleSignIn;e.profileForm.onsubmit=setupProfile;e.authSwitch.onclick=()=>mode(e.auth.dataset.login!=='true');e.searchForm.onsubmit=event=>{event.preventDefault();searchUsers()};e.logout.onclick=()=>signOut(auth);e.composer.onsubmit=sendMessage;e.attach.onclick=()=>e.attachment.click();e.attachment.onchange=event=>{state.file=event.target.files[0];if(state.file)notify(`${state.file.name} attached.`)};e.call.onclick=()=>{if(state.friend)location.href=`../call/index.html?user=${encodeURIComponent(state.friend.username)}`};if(!configured)show(e.setup);else{mode(true);onAuthStateChanged(auth,user=>{state.user=user;user?loadProfile(user):show(e.auth)})}
 </script>
-<button id="googleButton" type="button" class="rounded-md border border-white/15 bg-[#181522] p-3 text-sm font-semibold text-white hover:border-cyan-300">Continue with Google</button>
-<script>document.getElementById('auth').prepend(document.getElementById('googleButton'));</script>
+<button id="googleButton" type="button" class="mt-8 w-full rounded-md border border-cyan-300/40 bg-[#181522] p-3 text-sm font-semibold text-white hover:border-cyan-300 hover:bg-cyan-300/10">Continue with Google</button>
+<script>document.getElementById('authForm').before(document.getElementById('googleButton'));</script>
 </body>
 </html>
