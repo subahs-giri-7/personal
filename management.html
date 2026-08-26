@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Management Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#0b1017', panel: '#111925', line: '#263447', cyan: '#69d7d0', amber: '#f4b860' },
+          fontFamily: { sans: ['DM Sans', 'ui-sans-serif', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #0b1017; background-image: linear-gradient(135deg, rgba(105,215,208,.05), transparent 35%), linear-gradient(315deg, rgba(244,184,96,.035), transparent 30%); }
+    .editor-scroll::-webkit-scrollbar, .file-list::-webkit-scrollbar { width: 10px; height: 10px; }
+    .editor-scroll::-webkit-scrollbar-thumb, .file-list::-webkit-scrollbar-thumb { background: #263447; border-radius: 5px; }
+    textarea { tab-size: 2; }
+    .line-numbers { user-select: none; }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-200">
+  <header class="border-b border-line bg-ink/90">
+    <div class="mx-auto flex max-w-[1600px] items-center justify-between px-5 py-4 lg:px-8">
+      <div class="flex items-center gap-3">
+        <div class="grid h-9 w-9 place-items-center rounded-lg bg-cyan text-sm font-bold text-ink">M</div>
+        <div><p class="text-sm font-semibold tracking-wide text-white">Management Panel</p><p class="text-xs text-slate-500">GitHub repository editor</p></div>
+      </div>
+      <button id="logoutButton" type="button" class="hidden rounded-md border border-line px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-amber hover:text-amber">Clear credentials</button>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-[1600px] px-5 py-6 lg:px-8">
+    <section id="configPanel" class="mb-6 rounded-xl border border-line bg-panel/80 p-5 shadow-2xl shadow-black/10">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div><p class="mb-1 text-xs font-semibold uppercase tracking-[.2em] text-cyan">Connection</p><h1 class="text-xl font-semibold text-white">Connect to a repository</h1></div>
+        <p class="max-w-md text-right text-xs leading-5 text-slate-500">Your token is stored only in this browser's local storage and sent directly to GitHub.</p>
+      </div>
+      <form id="configForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <label class="block"><span class="mb-2 block text-xs font-medium text-slate-400">GitHub username</span><input id="owner" required autocomplete="username" class="w-full rounded-md border border-line bg-ink px-3 py-2.5 text-sm outline-none transition focus:border-cyan" placeholder="octocat"></label>
+        <label class="block"><span class="mb-2 block text-xs font-medium text-slate-400">Repository</span><input id="repo" required class="w-full rounded-md border border-line bg-ink px-3 py-2.5 text-sm outline-none transition focus:border-cyan" placeholder="my-site"></label>
+        <label class="block"><span class="mb-2 block text-xs font-medium text-slate-400">Branch</span><input id="branch" required value="main" class="w-full rounded-md border border-line bg-ink px-3 py-2.5 text-sm outline-none transition focus:border-cyan" placeholder="main"></label>
+        <label class="block"><span class="mb-2 block text-xs font-medium text-slate-400">Personal access token</span><input id="token" required type="password" autocomplete="current-password" class="w-full rounded-md border border-line bg-ink px-3 py-2.5 text-sm outline-none transition focus:border-cyan" placeholder="github_pat_..."></label>
+        <button class="mt-auto rounded-md bg-cyan px-4 py-2.5 text-sm font-bold text-ink transition hover:bg-cyan/85 disabled:cursor-wait disabled:opacity-60" type="submit" id="connectButton">Connect repository</button>
+      </form>
+    </section>
+
+    <div class="grid min-h-[650px] gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <aside class="flex min-h-0 flex-col rounded-xl border border-line bg-panel/70">
+        <div class="border-b border-line px-4 py-4"><div class="flex items-center justify-between"><h2 class="text-sm font-semibold text-white">Repository files</h2><span id="fileCount" class="text-xs text-slate-500">0 files</span></div><p id="repoLabel" class="mt-1 truncate text-xs text-slate-500">Connect to load files</p></div>
+        <div id="fileList" class="file-list min-h-0 flex-1 overflow-y-auto p-2"><div class="px-3 py-8 text-center text-xs leading-5 text-slate-500">Files will appear here after you connect.</div></div>
+      </aside>
+
+      <section class="flex min-h-0 flex-col rounded-xl border border-line bg-panel/70">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3"><div class="min-w-0"><p class="text-[10px] font-semibold uppercase tracking-[.18em] text-slate-500">Editing</p><h2 id="fileName" class="truncate text-sm font-semibold text-white">No file selected</h2></div><button id="saveButton" type="button" disabled class="rounded-md bg-amber px-4 py-2 text-sm font-bold text-ink transition hover:bg-amber/85 disabled:cursor-not-allowed disabled:opacity-40">Save &amp; publish</button></div>
+        <div class="flex min-h-0 flex-1 overflow-hidden bg-[#0d141d]"><pre id="lineNumbers" aria-hidden="true" class="line-numbers editor-scroll m-0 w-12 overflow-hidden border-r border-line px-3 py-4 text-right font-mono text-xs leading-6 text-slate-600">1</pre><textarea id="editor" aria-label="File editor" disabled spellcheck="false" class="editor-scroll min-w-0 flex-1 resize-none overflow-auto bg-transparent p-4 font-mono text-xs leading-6 text-slate-300 outline-none" placeholder="Select a file to begin editing..."></textarea></div>
+        <div class="flex min-h-10 items-center border-t border-line px-4"><p id="status" role="status" class="text-xs text-slate-500">Ready.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'management-panel-credentials';
+      const state = { credentials: null, files: [], current: null, dirty: false };
+      const $ = (id) => document.getElementById(id);
+      const els = { configPanel: $('configPanel'), configForm: $('configForm'), owner: $('owner'), repo: $('repo'), branch: $('branch'), token: $('token'), connect: $('connectButton'), logout: $('logoutButton'), list: $('fileList'), count: $('fileCount'), label: $('repoLabel'), name: $('fileName'), editor: $('editor'), lines: $('lineNumbers'), save: $('saveButton'), status: $('status') };
+
+      function setStatus(message, type = 'normal') {
+        els.status.textContent = message;
+        els.status.className = `text-xs ${type === 'error' ? 'text-rose-400' : type === 'success' ? 'text-cyan' : 'text-slate-500'}`;
+      }
+      function apiUrl(path = '') {
+        const { owner, repo } = state.credentials;
+        return `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${path}`;
+      }
+      function headers() { return { Accept: 'application/vnd.github+json', Authorization: `Bearer ${state.credentials.token}`, 'X-GitHub-Api-Version': '2022-11-28' }; }
+      function readableError(response, data) {
+        if (response.status === 401 || response.status === 403) return response.status === 403 ? 'GitHub rejected the request or rate limit was reached.' : 'Invalid or expired token.';
+        return data?.message || `GitHub request failed (${response.status}).`;
+      }
+      async function github(path, options = {}) {
+        let response;
+        try { response = await fetch(apiUrl(path), { ...options, headers: { ...headers(), ...(options.headers || {}) } }); }
+        catch { throw new Error('Network error. Check your connection and try again.'); }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(readableError(response, data));
+        return data;
+      }
+      function encodeBase64(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+        return btoa(binary);
+      }
+      function decodeBase64(value) {
+        const binary = atob(value.replace(/\n/g, ''));
+        return new TextDecoder().decode(Uint8Array.from(binary, character => character.charCodeAt(0)));
+      }
+      function pathForApi(path) { return path.split('/').map(encodeURIComponent).join('/'); }
+      function updateLineNumbers() { els.lines.textContent = Array.from({ length: Math.max(1, els.editor.value.split('\n').length) }, (_, index) => index + 1).join('\n'); }
+      function resetEditor() { state.current = null; state.dirty = false; els.name.textContent = 'No file selected'; els.editor.value = ''; els.editor.disabled = true; els.save.disabled = true; updateLineNumbers(); }
+      function canLeaveFile() { return !state.dirty || window.confirm('You have unsaved changes. Switch files and discard them?'); }
+
+      function renderFiles() {
+        els.list.replaceChildren();
+        if (!state.files.length) { els.list.innerHTML = '<div class="px-3 py-8 text-center text-xs text-slate-500">No files found on this branch.</div>'; return; }
+        for (const file of state.files) {
+          const button = document.createElement('button'); button.type = 'button'; button.dataset.path = file.path;
+          button.className = 'group flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-slate-400 transition hover:bg-[#1a2533] hover:text-white';
+          button.innerHTML = '<span class="text-slate-600">⌁</span><span class="truncate"></span>'; button.querySelector('span:last-child').textContent = file.path;
+          button.addEventListener('click', () => openFile(file)); els.list.appendChild(button);
+        }
+      }
+      async function loadFiles() {
+        setStatus('Loading repository tree...'); els.connect.disabled = true;
+        try {
+          const tree = await github(`git/trees/${encodeURIComponent(state.credentials.branch)}?recursive=1`);
+          state.files = (tree.tree || []).filter(item => item.type === 'blob').sort((a, b) => a.path.localeCompare(b.path));
+          els.count.textContent = `${state.files.length} file${state.files.length === 1 ? '' : 's'}`; els.label.textContent = `${state.credentials.owner}/${state.credentials.repo} · ${state.credentials.branch}`; renderFiles(); setStatus('Repository loaded.', 'success');
+        } catch (error) { state.files = []; els.count.textContent = '0 files'; renderFiles(); setStatus(error.message, 'error'); }
+        finally { els.connect.disabled = false; }
+      }
+      async function openFile(file) {
+        if (!canLeaveFile()) return;
+        setStatus(`Opening ${file.path}...`); els.save.disabled = true;
+        try {
+          const data = await github(`contents/${pathForApi(file.path)}?ref=${encodeURIComponent(state.credentials.branch)}`);
+          state.current = { path: file.path, sha: data.sha }; state.dirty = false; els.name.textContent = file.path; els.editor.value = decodeBase64(data.content || ''); els.editor.disabled = false; els.save.disabled = false; updateLineNumbers(); highlightCurrent(file.path); setStatus('Loaded.');
+        } catch (error) { setStatus(error.message, 'error'); }
+      }
+      function highlightCurrent(path) { document.querySelectorAll('[data-path]').forEach(button => button.classList.toggle('bg-[#1a2533]', button.dataset.path === path)); }
+      async function saveFile() {
+        if (!state.current || !state.dirty) { setStatus('No changes to publish.'); return; }
+        const defaultMessage = `Update ${state.current.path} via Management Panel`; const message = window.prompt('Commit message:', defaultMessage);
+        if (message === null) return;
+        els.save.disabled = true; setStatus('Publishing changes...');
+        try {
+          /* GitHub requires the blob SHA returned by GET /contents for an update.
+             Sending that SHA proves which current version we intend to replace and
+             prevents accidentally overwriting a newer version in the repository. */
+          const data = await github(`contents/${pathForApi(state.current.path)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: message.trim() || defaultMessage, content: encodeBase64(els.editor.value), branch: state.credentials.branch, sha: state.current.sha }) });
+          state.current.sha = data.content?.sha || state.current.sha; state.dirty = false; setStatus('Published successfully.', 'success');
+        } catch (error) { setStatus(error.message, 'error'); }
+        finally { els.save.disabled = false; }
+      }
+
+      els.configForm.addEventListener('submit', event => { event.preventDefault(); state.credentials = { owner: els.owner.value.trim(), repo: els.repo.value.trim(), branch: els.branch.value.trim() || 'main', token: els.token.value.trim() }; localStorage.setItem(STORAGE_KEY, JSON.stringify(state.credentials)); els.configPanel.classList.add('hidden'); els.logout.classList.remove('hidden'); resetEditor(); loadFiles(); });
+      els.logout.addEventListener('click', () => { if (!window.confirm('Clear saved GitHub credentials from this browser?')) return; localStorage.removeItem(STORAGE_KEY); state.credentials = null; els.configForm.reset(); els.branch.value = 'main'; els.configPanel.classList.remove('hidden'); els.logout.classList.add('hidden'); els.list.innerHTML = '<div class="px-3 py-8 text-center text-xs leading-5 text-slate-500">Files will appear here after you connect.</div>'; resetEditor(); setStatus('Credentials cleared.'); });
+      els.editor.addEventListener('input', () => { state.dirty = true; updateLineNumbers(); setStatus('Unsaved changes.'); });
+      els.editor.addEventListener('scroll', () => { els.lines.scrollTop = els.editor.scrollTop; });
+      els.save.addEventListener('click', saveFile);
+
+      try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (saved?.owner && saved?.repo && saved?.token) { state.credentials = saved; els.owner.value = saved.owner; els.repo.value = saved.repo; els.branch.value = saved.branch || 'main'; els.token.value = saved.token; els.configPanel.classList.add('hidden'); els.logout.classList.remove('hidden'); loadFiles(); } } catch { localStorage.removeItem(STORAGE_KEY); }
+    })();
+  </script>
+</body>
+</html>
