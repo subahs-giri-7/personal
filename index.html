@@ -3,44 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Private browser-to-browser content sharing with six-digit pairing.">
-  <title>Relayless | Content sharing</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { ink: '#0b1017', panel: '#111925', line: '#263447', cyan: '#69d7d0', amber: '#f4b860' },
-          fontFamily: { sans: ['DM Sans', 'ui-sans-serif', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] }
-        }
-      }
-    };
-  </script>
+  <meta name="description" content="Private messaging, calling, and browser-to-browser sharing with Relayless.">
+  <title>Relayless | Meaningful connections</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; }
-    body { background: #0b1017; background-image: linear-gradient(135deg, rgba(105,215,208,.06), transparent 38%), linear-gradient(315deg, rgba(244,184,96,.04), transparent 32%); }
+    :root{--blue:#1769ff;--ink:#10131b;--muted:#5d6470;--line:#e5e8ee;--paper:#fff;--soft:#f5f7fb;--lime:#c6ec68}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif}a{color:inherit;text-decoration:none}.page{min-height:100vh;overflow:hidden}.shell{width:min(1240px,calc(100% - 64px));margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;padding:25px 0}.brand{display:flex;align-items:center;gap:11px;font-weight:700}.brand-mark{display:grid;place-items:center;width:37px;height:37px;border-radius:12px;background:var(--blue);color:#fff;font-family:Manrope;font-size:18px;box-shadow:0 7px 18px #1769ff2b}.brand small{display:block;margin-top:3px;color:#8a909b;font-size:11px;font-weight:500}.nav{display:flex;align-items:center;gap:31px;color:#242933;font-size:13px;font-weight:600}.nav a{transition:color .2s}.nav a:hover{color:var(--blue)}.nav-cta{border:1px solid var(--line);border-radius:999px;padding:11px 17px}.hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(500px,1.1fr);align-items:center;gap:46px;min-height:calc(100vh - 91px);padding:50px 0 75px}.eyebrow{display:inline-flex;align-items:center;gap:8px;margin:0 0 24px;color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:'';width:22px;height:2px;background:var(--blue)}h1{max-width:570px;margin:0;font-family:Manrope,sans-serif;font-size:clamp(3.3rem,6.5vw,5.9rem);font-weight:800;letter-spacing:-.055em;line-height:.97;color:var(--blue)}.intro{max-width:480px;margin:28px 0 0;color:var(--muted);font-size:17px;line-height:1.65}.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:30px}.button{display:inline-flex;align-items:center;gap:12px;border-radius:10px;padding:14px 19px;font-size:13px;font-weight:700;transition:transform .2s,box-shadow .2s}.button:hover{transform:translateY(-2px)}.button-primary{background:var(--blue);color:#fff;box-shadow:0 12px 24px #1769ff2e}.button-secondary{border:1px solid var(--line);background:#fff;color:#313743}.arrow{font-size:18px;line-height:0}.microcopy{margin-top:18px;color:#9198a3;font-size:11px}.preview-wrap{position:relative;min-height:550px}.preview-wrap:before{content:'';position:absolute;inset:9% 0 4% 12%;border-radius:50%;background:#f0f6ff}.preview{position:absolute;right:3%;top:5%;width:min(450px,77%);filter:drop-shadow(0 25px 25px #15315a1c);transform:rotate(3deg)}.phone{position:absolute;z-index:2;left:5%;bottom:4%;width:min(310px,58%);overflow:hidden;border:8px solid #fff;border-radius:27px;background:#fff;box-shadow:0 22px 40px #15315a2e;transform:rotate(-6deg)}.phone-head{display:flex;align-items:center;justify-content:space-between;padding:17px 16px 13px;background:#fff}.phone-title{color:var(--blue);font-family:Manrope;font-size:20px;font-weight:800}.phone-icons{color:#626a78;font-size:15px}.stories{display:flex;gap:9px;overflow:hidden;padding:6px 13px 13px;border-bottom:1px solid #edf0f4}.story{flex:none;text-align:center;color:#656c78;font-size:8px}.avatar{display:grid;place-items:center;width:38px;height:38px;margin-bottom:5px;border-radius:50%;background:#dce8ff;color:var(--blue);font-size:12px;font-weight:700}.story:first-child .avatar{border:3px solid var(--blue);background:#fff}.thread{padding:9px 14px 17px}.thread-row{display:flex;align-items:center;gap:10px;padding:11px 0}.thread-row .avatar{width:40px;height:40px;margin:0;background:#ffd7c7;color:#c45330}.thread-row:nth-child(2) .avatar{background:#d9f0b6;color:#557c25}.thread-row:nth-child(3) .avatar{background:#ddd6ff;color:#6852b9}.thread-copy{min-width:0;flex:1}.thread-copy strong{display:block;font-size:11px}.thread-copy span{display:block;margin-top:4px;overflow:hidden;color:#8a919c;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.time{align-self:flex-start;color:#a3a9b2;font-size:8px}.wave-card{position:absolute;right:1%;bottom:7%;z-index:3;width:min(285px,48%);padding:20px;border-radius:17px;background:var(--blue);color:#fff;box-shadow:0 20px 35px #1769ff4a;transform:rotate(3deg)}.wave-card p{margin:0 0 14px;font-size:11px;font-weight:700}.wave{display:flex;align-items:center;gap:3px;height:30px}.wave i{width:3px;border-radius:3px;background:#fff;height:var(--h)}.wave-foot{display:flex;justify-content:space-between;margin-top:12px;color:#cfe0ff;font-size:9px}.bottom-line{display:flex;align-items:center;gap:12px;color:#9ba1ab;font-size:11px}.bottom-line:before{content:'';width:28px;height:1px;background:var(--line)}@media(max-width:900px){.shell{width:min(100% - 36px,680px)}.nav{gap:14px}.nav a:not(.nav-cta){display:none}.hero{grid-template-columns:1fr;gap:5px;min-height:auto;padding:70px 0 55px}h1{max-width:620px}.preview-wrap{min-height:500px;margin-top:25px}.preview-wrap:before{inset:8% 0 2% 4%}}@media(max-width:560px){.shell{width:calc(100% - 30px)}.topbar{padding:18px 0}.nav-cta{padding:9px 12px}.hero{padding-top:48px}.eyebrow{margin-bottom:18px}h1{font-size:clamp(3rem,15vw,4.3rem)}.intro{font-size:15px}.actions{align-items:stretch;flex-direction:column}.button{justify-content:center}.preview-wrap{min-height:400px}.preview{right:-12%;width:75%}.phone{left:0;width:58%;border-width:5px;border-radius:19px}.phone-head{padding:11px 10px 8px}.phone-title{font-size:14px}.stories{padding:4px 8px 9px}.thread{padding:5px 9px 10px}.thread-row{gap:6px;padding:7px 0}.thread-row .avatar{width:28px;height:28px}.thread-copy strong{font-size:9px}.thread-copy span{font-size:7px}.wave-card{right:0;bottom:4%;width:51%;padding:13px}.wave-card p{margin-bottom:8px;font-size:9px}.bottom-line{margin-top:27px}}
   </style>
 </head>
-<body class="min-h-screen font-sans text-slate-200">
-  <main class="mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8 lg:px-10">
-    <header class="flex items-center gap-3">
-      <div class="grid h-10 w-10 place-items-center rounded-lg bg-cyan font-bold text-ink">R</div>
-      <div><p class="text-sm font-semibold tracking-wide text-white">Relayless</p><p class="text-xs text-slate-500">Private content sharing</p></div>
-    </header>
-
-    <section class="flex flex-1 items-center py-20">
-      <div class="max-w-2xl">
-        <p class="mb-5 font-mono text-xs font-medium uppercase tracking-[.2em] text-cyan">Direct browser sharing</p>
-        <h1 class="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">Share the file. Share the moment.</h1>
-        <p class="mt-6 max-w-lg text-base leading-7 text-slate-400">Pair two browsers with a six-digit code, then send notes, music, images, videos, PDFs, or any other file directly between them.</p>
-        <div class="mt-9 flex flex-wrap gap-3"><a href="share.html" class="inline-flex items-center gap-3 rounded-md bg-amber px-5 py-3 text-sm font-bold text-ink transition hover:bg-amber/85 focus:outline-none focus:ring-2 focus:ring-amber focus:ring-offset-2 focus:ring-offset-ink">Start sharing <span aria-hidden="true">-&gt;</span></a><a href="messaging/index.html" class="inline-flex items-center rounded-md border border-violet-400/50 px-5 py-3 text-sm font-semibold text-violet-200 transition hover:border-violet-300 hover:bg-violet-400/10">Open messages</a><a href="call/index.html" class="inline-flex items-center rounded-md border border-cyan/50 px-5 py-3 text-sm font-semibold text-cyan transition hover:border-cyan hover:bg-cyan/10">Start a call</a><a href="management.html" class="inline-flex items-center rounded-md border border-line px-5 py-3 text-sm font-semibold text-slate-300 transition hover:border-cyan hover:text-cyan">Repository management</a></div>
-      </div>
-    </section>
-
-    <footer class="border-t border-line pt-5 text-xs text-slate-600">WebRTC data channel <span class="mx-2 text-slate-700">/</span> Files stay in the browsers during transfer</footer>
-  </main>
+<body>
+  <div class="page">
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Relayless<small>Private conversations</small></span></a>
+        <nav class="nav" aria-label="Main navigation"><a href="messaging/index.html">Messages</a><a href="share.html">Share</a><a href="call/index.html">Calls</a><a class="nav-cta" href="messaging/index.html">Open app</a></nav>
+      </header>
+      <main class="hero">
+        <section>
+          <p class="eyebrow">Stay close, wherever you are</p>
+          <h1>Meaningful conversations, made simple.</h1>
+          <p class="intro">Relayless brings private messages, voice notes, calls, and direct file sharing into one calm place built for real connection.</p>
+          <div class="actions"><a class="button button-primary" href="messaging/index.html">Start a conversation <span class="arrow" aria-hidden="true">&rarr;</span></a><a class="button button-secondary" href="share.html">Share a file</a></div>
+          <p class="microcopy">No noisy feeds. No complicated setup. Just the people and moments that matter.</p>
+          <div class="bottom-line">Private by design</div>
+        </section>
+        <section class="preview-wrap" aria-label="Relayless app preview">
+          <div class="preview"><div class="phone-head"><span class="phone-title">relayless</span><span class="phone-icons">&#9998; &nbsp; &#9679;</span></div><div class="stories"><div class="story"><div class="avatar">+</div>Note</div><div class="story"><div class="avatar">AJ</div>Alex</div><div class="story"><div class="avatar">MR</div>Mira</div><div class="story"><div class="avatar">SK</div>Sam</div></div><div class="thread"><div class="thread-row"><div class="avatar">MJ</div><div class="thread-copy"><strong>Maya Jones</strong><span>That sounds perfect. See you soon!</span></div><span class="time">9:41</span></div><div class="thread-row"><div class="avatar">AL</div><div class="thread-copy"><strong>Alex Lee</strong><span>Sent you a voice message</span></div><span class="time">8:50</span></div><div class="thread-row"><div class="avatar">NS</div><div class="thread-copy"><strong>Nia Santos</strong><span>Photo &middot; Yesterday</span></div><span class="time">Fri</span></div></div></div>
+          <div class="phone"><div class="phone-head"><span class="phone-icons">&larr;</span><span class="phone-title">Maya</span><span class="phone-icons">&#9742;</span></div><div class="thread"><div class="thread-row"><div class="avatar">MJ</div><div class="thread-copy"><strong>Maya Jones</strong><span>Active now</span></div></div><div style="height:120px"></div><div class="thread-row"><div class="avatar">MJ</div><div class="thread-copy"><span>Hope your day is going well.</span></div></div></div></div>
+          <div class="wave-card"><p>Voice message &middot; 0:24</p><div class="wave"> <i style="--h:12px"></i><i style="--h:25px"></i><i style="--h:18px"></i><i style="--h:29px"></i><i style="--h:14px"></i><i style="--h:24px"></i><i style="--h:10px"></i><i style="--h:28px"></i><i style="--h:17px"></i><i style="--h:23px"></i><i style="--h:12px"></i><i style="--h:27px"></i><i style="--h:15px"></i><i style="--h:22px"></i></div><div class="wave-foot"><span>Play message</span><span>0:24</span></div></div>
+        </section>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
