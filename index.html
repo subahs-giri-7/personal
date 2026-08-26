@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A browser-based GitHub repository management panel.">
+  <title>Personal | Repository Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#0b1017', panel: '#111925', line: '#263447', cyan: '#69d7d0', amber: '#f4b860' },
+          fontFamily: { sans: ['DM Sans', 'ui-sans-serif', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #0b1017; background-image: linear-gradient(135deg, rgba(105,215,208,.06), transparent 38%), linear-gradient(315deg, rgba(244,184,96,.04), transparent 32%); }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-200">
+  <main class="mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8 lg:px-10">
+    <header class="flex items-center gap-3">
+      <div class="grid h-10 w-10 place-items-center rounded-lg bg-cyan font-bold text-ink">P</div>
+      <div><p class="text-sm font-semibold tracking-wide text-white">Personal</p><p class="text-xs text-slate-500">GitHub Pages workspace</p></div>
+    </header>
+
+    <section class="flex flex-1 items-center py-20">
+      <div class="max-w-2xl">
+        <p class="mb-5 font-mono text-xs font-medium uppercase tracking-[.2em] text-cyan">Repository control center</p>
+        <h1 class="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">Manage your site from the browser.</h1>
+        <p class="mt-6 max-w-lg text-base leading-7 text-slate-400">Open the management panel to browse, edit, and publish files directly to your GitHub repository.</p>
+        <a href="management.html" class="mt-9 inline-flex items-center gap-3 rounded-md bg-amber px-5 py-3 text-sm font-bold text-ink transition hover:bg-amber/85 focus:outline-none focus:ring-2 focus:ring-amber focus:ring-offset-2 focus:ring-offset-ink">Open management panel <span aria-hidden="true">-&gt;</span></a>
+      </div>
+    </section>
+
+    <footer class="border-t border-line pt-5 text-xs text-slate-600">Static GitHub Pages site <span class="mx-2 text-slate-700">/</span> Client-side repository tools</footer>
+  </main>
+</body>
+</html>
