@@ -4,7 +4,8 @@
 
     <application
         android:allowBackup="true"
-        android:label="Relayless"
+        android:label="Relayless Messenger"
+        android:icon="@drawable/logo"
         android:theme="@style/Theme.Relayless">
         <activity
             android:name=".MainActivity"

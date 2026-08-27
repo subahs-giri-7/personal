@@ -16,6 +16,7 @@ import android.webkit.WebChromeClient;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -25,6 +26,7 @@ public class MainActivity extends Activity {
     private static final String HOME_URL = "https://subahs-giri-7.github.io/personal/index.html";
     private WebView webView;
     private ProgressBar progress;
+    private ImageView logo;
     private View errorView;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -38,9 +40,16 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
         progress = new ProgressBar(this);
+        logo = new ImageView(this);
+        logo.setImageResource(R.drawable.logo);
+        logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        logo.setPadding(32, 32, 32, 32);
         FrameLayout.LayoutParams progressParams = new FrameLayout.LayoutParams(72, 72);
         progressParams.gravity = android.view.Gravity.CENTER;
         root.addView(webView, new FrameLayout.LayoutParams(-1, -1));
+        FrameLayout.LayoutParams logoParams = new FrameLayout.LayoutParams(180, 180);
+        logoParams.gravity = android.view.Gravity.CENTER;
+        root.addView(logo, logoParams);
         root.addView(progress, progressParams);
         errorView = createErrorView();
         errorView.setVisibility(View.GONE);
@@ -127,6 +136,7 @@ public class MainActivity extends Activity {
         panel.addView(retry, retryParams);
         retry.setOnClickListener(view -> {
             panel.setVisibility(View.GONE);
+            logo.setVisibility(View.VISIBLE);
             progress.setVisibility(View.VISIBLE);
             webView.reload();
         });
@@ -155,6 +165,7 @@ public class MainActivity extends Activity {
         @Override
         public void onPageFinished(WebView view, String url) {
             progress.setVisibility(View.GONE);
+            logo.setVisibility(View.GONE);
             errorView.setVisibility(View.GONE);
         }
 
@@ -162,6 +173,7 @@ public class MainActivity extends Activity {
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
             if (request.isForMainFrame()) {
                 progress.setVisibility(View.GONE);
+                logo.setVisibility(View.GONE);
                 errorView.setVisibility(View.VISIBLE);
             }
         }
