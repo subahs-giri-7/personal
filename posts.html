@@ -391,6 +391,7 @@
         getDoc,
         getDocs,
         addDoc,
+        deleteDoc,
         updateDoc,
         serverTimestamp,
         increment,
@@ -540,6 +541,8 @@
           card = document.createElement("article");
         card.className = "post-card overflow-hidden";
         card.dataset.id = post.id;
+        card.dataset.authorId = data.authorId || "";
+        card.postRef = post;
         const date = data.createdAt?.toDate
           ? data.createdAt.toDate().toLocaleString()
           : "Just now";
@@ -549,6 +552,15 @@
             : `<img class="post-media" src="${escape(data.mediaUrl)}" alt="Post media" loading="lazy" data-view-media="${escape(data.mediaUrl)}">`
           : "";
         card.innerHTML = `<div class="flex items-center gap-3 p-5"><a href="profile.html?uid=${encodeURIComponent(data.authorId)}" data-author-avatar>${avatar(data)}</a><div class="min-w-0 flex-1"><a class="post-author-name block truncate text-sm font-bold text-slate-900" href="profile.html?uid=${encodeURIComponent(data.authorId)}">${escape(data.authorName || "Relayless user")}</a><a class="post-author-username block truncate text-xs text-blue-600" href="profile.html?uid=${encodeURIComponent(data.authorId)}">@${escape(data.authorUsername || "user")} · ${date}</a></div></div>${data.text ? `<p class="post-text-preview whitespace-pre-wrap px-5 pb-5 text-sm leading-6 text-slate-700">${escape(data.text)}</p>` : ""}${media}<div class="flex items-center gap-5 px-5 py-4 text-xs"><button class="post-action" data-action="react">Like <span>${data.reactionCount || 0}</span></button><button class="post-action" data-action="comments">Comment <span>${data.commentCount || 0}</span></button><button class="post-action" data-action="share">Share</button></div><div class="comment-list hidden px-5 pb-4"><div class="comments space-y-2"></div><form class="comment-form mt-3 flex gap-2"><input class="comment-input min-w-0 flex-1 rounded-full px-4 py-2 text-xs" maxlength="500" placeholder="Write a comment..."><button class="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white">Send</button></form></div>`;
+        if (viewer && data.authorId === viewer.uid) {
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "post-action post-delete-action";
+          deleteButton.textContent = "Delete";
+          deleteButton.setAttribute("aria-label", "Delete your post");
+          deleteButton.onclick = () => deletePost(post, card);
+          card.querySelector('[data-action="share"]').after(deleteButton);
+        }
         profile(data.authorId).then((author) => {
           const authorData = { ...data, ...author };
           const avatarLink = card.querySelector("[data-author-avatar]");
@@ -621,6 +633,29 @@
           });
         } catch (error) { $("shareFriends").innerHTML = `<p class="text-xs text-rose-500">Could not load conversations: ${escape(error.message)}</p>`; }
       }
+      async function deletePost(post, card) {
+        if (!viewer || post.data.authorId !== viewer.uid || !confirm("Delete this post?")) return;
+        try {
+          await deleteDoc(doc(db, "posts", post.id));
+          card.remove();
+          toast("Post deleted.");
+        } catch (error) {
+          toast(error.message || "Could not delete post.");
+        }
+      }
+      function refreshPostDeleteControls() {
+        if (!viewer) return;
+        document.querySelectorAll('.post-card').forEach((card) => {
+          if (card.dataset.authorId !== viewer.uid || card.querySelector('.post-delete-action')) return;
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'button';
+          deleteButton.className = 'post-action post-delete-action';
+          deleteButton.textContent = 'Delete';
+          deleteButton.setAttribute('aria-label', 'Delete your post');
+          deleteButton.onclick = () => deletePost(card.postRef, card);
+          card.querySelector('[data-action="share"]')?.after(deleteButton);
+        });
+      }
       async function sendPostToFriend(post, friend) {
         $("shareStatus").textContent = `Sending to @${friend.username || "user"}...`;
         try {
@@ -689,6 +724,7 @@
         viewer = user;
         if (user) {
           viewerProfile = await profile(user.uid);
+          refreshPostDeleteControls();
           $("composerName").textContent =
             viewerProfile.displayName || "Relayless user";
           $("composerHint").textContent =
