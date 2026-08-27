@@ -15,10 +15,11 @@
   inner.classList.add('site-header-inner');
   const wrap = document.createElement('div');
   wrap.className = 'site-menu-wrap';
-  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon">R</span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}">${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
-  inner.append(wrap);
+  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon">R</span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile page' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
+  document.body.append(wrap);
   const button = wrap.querySelector('.profile-menu-button');
   const icon = wrap.querySelector('.profile-menu-icon');
+  const profileLink = wrap.querySelector('#profileMenuLink');
   const setAvatar = (photoURL, displayName) => {
     if (photoURL) {
       icon.innerHTML = '';
@@ -45,7 +46,11 @@
       import('https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js')
     ]);
     onAuthStateChanged(getAuth(app), async user => {
-      if (!user) return setAvatar('', 'R');
+      if (!user) {
+        profileLink.href = `${root}profile.html`;
+        return setAvatar('', 'R');
+      }
+      profileLink.href = `${root}profile.html?uid=${encodeURIComponent(user.uid)}`;
       let profile = {};
       try {
         const snapshot = await getDoc(doc(getFirestore(app), 'users', user.uid));
