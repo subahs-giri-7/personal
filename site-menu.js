@@ -11,12 +11,10 @@
     ['Settings', `${root}settings.html`],
     ['Terms', `${root}terms.html`]
   ];
-  const header = document.querySelector('header');
-  if (!header) return;
   if (isLandingPage) return;
-  const inner = header.querySelector(':scope > div') || header;
-  if (!inner) return;
-  inner.classList.add('site-header-inner');
+  const header = document.querySelector('header');
+  const inner = header ? (header.querySelector(':scope > div') || header) : null;
+  if (inner) inner.classList.add('site-header-inner');
   const wrap = document.createElement('div');
   wrap.className = 'site-menu-wrap';
   wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small id="siteUserStatus">Checking login…</small><small id="siteUserId" class="site-user-id">Waiting for user</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav><button id="siteLogout" class="site-menu-logout" type="button">Log out</button></aside>`;
