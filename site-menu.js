@@ -1,7 +1,7 @@
 (() => {
   const nested = location.pathname.includes('/messaging/') || location.pathname.includes('/call/');
   const root = nested ? '../' : '';
-  const isLandingPage = location.pathname.endsWith('/index.html') || location.pathname === '/' || location.pathname.endsWith('/index.html/');
+  const isLandingPage = !nested && (location.pathname.endsWith('/index.html') || location.pathname === '/' || location.pathname.endsWith('/index.html/'));
   const links = [
     ['Chats', `${root}messaging/index.html`],
     ['Posts', `${root}posts.html`],
