@@ -9,7 +9,8 @@
   const back = document.createElement('button');
   back.type = 'button';
   back.className = 'chat-back rounded-md border border-blue-500 px-3 py-2 text-xs font-semibold text-blue-600';
-  back.textContent = 'Back';
+  back.innerHTML = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span class="sr-only">Back</span>';
+  back.setAttribute('aria-label', 'Back to conversations');
   back.hidden = true;
   header.prepend(back);
 
