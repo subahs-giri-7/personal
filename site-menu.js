@@ -1,6 +1,7 @@
 (() => {
   const nested = location.pathname.includes('/messaging/') || location.pathname.includes('/call/');
   const root = nested ? '../' : '';
+  const isLandingPage = location.pathname.endsWith('/index.html') || location.pathname === '/' || location.pathname.endsWith('/index.html/');
   const links = [
     ['Chats', `${root}messaging/index.html`],
     ['Posts', `${root}posts.html`],
@@ -17,13 +18,17 @@
   inner.classList.add('site-header-inner');
   const wrap = document.createElement('div');
   wrap.className = 'site-menu-wrap';
-  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav><button id="siteLogout" class="site-menu-logout" type="button">Log out</button></aside>`;
+  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small id="siteUserStatus">Checking login…</small><small id="siteUserId" class="site-user-id">Waiting for user</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav><button id="siteLogout" class="site-menu-logout" type="button">Log out</button></aside>`;
   document.body.append(wrap);
   const button = wrap.querySelector('.profile-menu-button');
   const icon = wrap.querySelector('.profile-menu-icon');
   const avatarImage = wrap.querySelector('.profile-menu-avatar');
   const profileLink = wrap.querySelector('#profileMenuLink');
   const logout = wrap.querySelector('#siteLogout');
+  const userStatus = wrap.querySelector('#siteUserStatus');
+  const userIdLabel = wrap.querySelector('#siteUserId');
+  const landingAppLink = document.getElementById('landingAppLink');
+  const landingLoginPrompt = document.getElementById('landingLoginPrompt');
   const setAvatar = (photoURL, displayName) => {
     if (photoURL) {
       avatarImage.src = photoURL;
@@ -35,6 +40,21 @@
       avatarImage.hidden = true;
       icon.dataset.initial = (displayName || 'R').trim()[0].toUpperCase();
       button.classList.remove('has-profile-image');
+    }
+  };
+  const setLandingAuthState = (user) => {
+    if (!landingAppLink) return;
+    if (user) {
+      landingAppLink.hidden = false;
+      landingAppLink.textContent = 'Open app';
+      if (landingLoginPrompt) landingLoginPrompt.classList.remove('is-visible');
+      return;
+    }
+    landingAppLink.hidden = true;
+    if (landingLoginPrompt) {
+      landingLoginPrompt.classList.add('is-visible');
+      landingLoginPrompt.hidden = false;
+      landingLoginPrompt.textContent = 'Please log in to continue.';
     }
   };
   avatarImage.addEventListener('error', () => setAvatar('', 'R'));
@@ -54,10 +74,23 @@
     ]);
     onAuthStateChanged(getAuth(app), async user => {
       if (!user) {
-        profileLink.href = `${root}profile.html`;
+        if (userStatus) userStatus.textContent = 'Logged out';
+        if (userIdLabel) userIdLabel.textContent = 'Login required';
+        if (profileLink) profileLink.href = `${root}messaging/index.html`;
+        logout.hidden = true;
+        button.hidden = isLandingPage;
+        if (isLandingPage) wrap.style.display = 'none';
+        setLandingAuthState(null);
         return setAvatar('', 'R');
       }
-      profileLink.href = `${root}profile.html?uid=${encodeURIComponent(user.uid)}`;
+
+      if (userStatus) userStatus.textContent = 'Logged in';
+      if (userIdLabel) userIdLabel.textContent = `User ID: ${user.uid}`;
+      if (profileLink) profileLink.href = `${root}profile.html?uid=${encodeURIComponent(user.uid)}`;
+      logout.hidden = false;
+      button.hidden = false;
+      wrap.style.display = '';
+      setLandingAuthState(user);
       let profile = {};
       try {
         const snapshot = await getDoc(doc(getFirestore(app), 'users', user.uid));
