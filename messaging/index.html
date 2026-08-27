@@ -41,6 +41,31 @@
 </style>
 <style>.presence-dot{display:inline-block;width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#a8b0ba;vertical-align:middle}.presence-dot.online{background:#36b37e}.profile-id{cursor:pointer;text-decoration:none}.profile-id:hover{text-decoration:underline}</style>
 <style>
+	#callOverlay{padding:clamp(12px,3vw,32px);background:rgba(7,12,20,.78);backdrop-filter:blur(14px)}
+	#callOverlay>div{display:flex;max-height:calc(100dvh - 32px);flex-direction:column;border:1px solid rgba(255,255,255,.16);border-radius:20px;background:linear-gradient(145deg,#172536,#101721);box-shadow:0 24px 80px rgba(0,0,0,.45)}
+	#callOverlay>div>div:first-child{flex:0 0 auto;padding:18px 20px;background:rgba(23,37,54,.92)}
+	#callOverlay #callPeerName{font-size:1.15rem;letter-spacing:-.02em}
+	#callOverlay #callState{margin-top:4px;color:#9fb1c4}
+	#callOverlay #declineCall{background:#f04463;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 18px rgba(240,68,99,.22)}
+	#callOverlay>div>div:nth-child(2){min-height:0;flex:1;background:#080e16}
+	#callOverlay .call-video{display:block;object-fit:contain;background:#080e16}
+	#callOverlay #localVideo{right:18px;bottom:18px;width:min(24%,220px);min-width:128px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+	#callOverlay #remoteCallPlaceholder{padding:20px;color:#dce7f2}
+	#callOverlay #remoteCallPlaceholder>div>div:first-child{background:#1769ff;box-shadow:0 10px 28px rgba(23,105,255,.3)}
+	#callOverlay #acceptCall{background:#76e3df;box-shadow:0 8px 20px rgba(118,227,223,.2)}
+	#callOverlay>div>div:last-child{flex:0 0 auto;padding:14px 20px;background:rgba(23,37,54,.92)}
+	#callOverlay>div>div:last-child button{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06);padding:10px 16px}
+	@media(max-width:640px){
+		#callOverlay{padding:10px}
+		#callOverlay>div{width:100%;max-height:calc(100dvh - 20px);border-radius:16px}
+		#callOverlay>div>div:first-child{padding:14px}
+		#callOverlay>div>div:nth-child(2){min-height:240px}
+		#callOverlay #localVideo{right:12px;bottom:12px;width:32%;min-width:96px}
+		#callOverlay>div>div:last-child{gap:8px;padding:12px}
+		#callOverlay>div>div:last-child button{flex:1;padding:9px 8px;font-size:11px}
+	}
+</style>
+<style>
 	html,body{max-width:100%;overflow-x:hidden}
 	#app{width:100%;overflow:hidden}
 	@media(max-width:640px){
@@ -95,7 +120,7 @@ async function toggleVoiceRecording(){if(state.recorder?.state==='recording'){st
 async function callMedia(video){return navigator.mediaDevices.getUserMedia({audio:true,video})}
 function showCall(friend,incoming=false){e.callOverlay.classList.remove('hidden');e.callOverlay.classList.add('flex');e.callPeerName.textContent=friend.displayName||'Incoming call';e.callState.textContent=incoming?'Incoming call':'Calling...';e.incomingText.textContent=incoming?'Incoming call':'Calling...';e.acceptCall.classList.toggle('hidden',!incoming)}
 function finishCall(){const mediaCall=state.mediaCall;state.mediaCall=null;mediaCall?.close();state.localStream?.getTracks().forEach(track=>track.stop());state.localStream=null;e.remoteVideo.srcObject=null;e.localVideo.srcObject=null;e.remotePlaceholder.classList.remove('hidden');e.callOverlay.classList.add('hidden');e.callOverlay.classList.remove('flex');e.acceptCall.classList.remove('hidden')}
-function handleMediaCall(call,friend,incoming=false){state.mediaCall=call;call.on('stream',stream=>{e.remoteVideo.srcObject=stream;e.remoteCallPlaceholder.classList.add('hidden');e.callState.textContent='Connected'});call.on('close',finishCall);call.on('error',error=>{finishCall();notify(`Call failed: ${error.message}`,true)});if(!incoming)showCall(friend)}
+function handleMediaCall(call,friend,incoming=false){state.mediaCall=call;call.on('stream',stream=>{e.remoteVideo.srcObject=stream;e.remotePlaceholder.classList.add('hidden');e.callState.textContent='Connected'});call.on('close',finishCall);call.on('error',error=>{finishCall();notify(`Call failed: ${error.message}`,true)});if(!incoming)showCall(friend)}
 async function startCall(friend,video){if(!state.peer||state.peer.destroyed){notify('Calling is not ready yet. Please try again.',true);return}try{state.callVideo=video;state.localStream=await callMedia(video);e.localVideo.srcObject=state.localStream;showCall(friend);handleMediaCall(state.peer.call(`relayless-${friend.uid}`,state.localStream,{metadata:{displayName:state.profile.displayName,username:state.profile.username,video}}),friend)}catch(error){notify(error.message==='Permission denied'?'Camera and microphone permission is required.':'Could not start the call.',true)}}
 async function acceptCall(){if(!state.pendingCall)return;try{state.callVideo=state.pendingCall.metadata?.video!==false;state.localStream=await callMedia(state.callVideo);e.localVideo.srcObject=state.localStream;state.pendingCall.answer(state.localStream);e.acceptCall.classList.add('hidden');e.callState.textContent='Connecting...';handleMediaCall(state.pendingCall,state.pendingFriend,true);state.pendingCall=null}catch(error){notify('Camera and microphone permission is required.',true);finishCall()}}
 function initializeCalling(){if(!window.Peer||state.peer)return;state.peer=new Peer(`relayless-${state.user.uid}`);state.peer.on('call',call=>{const metadata=call.metadata||{};state.pendingCall=call;state.pendingFriend={uid:call.peer.replace('relayless-',''),displayName:metadata.displayName||'Relayless user'};showCall(state.pendingFriend,true)});state.peer.on('error',error=>notify(`Call connection failed: ${error.type}`,true))}
