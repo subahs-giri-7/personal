@@ -2,11 +2,13 @@
   const nested = location.pathname.includes('/messaging/') || location.pathname.includes('/call/');
   const root = nested ? '../' : '';
   const links = [
-    ['Posts page', `${root}posts.html`],
-    ['Profile page', `${root}profile.html`],
-    ['Sharing page', `${root}share.html`],
-    ['Calling page', `${root}call/index.html`],
-    ['Terms page', `${root}terms.html`]
+    ['Chats', `${root}messaging/index.html`],
+    ['Posts', `${root}posts.html`],
+    ['Profile', `${root}profile.html`],
+    ['Sharing', `${root}share.html`],
+    ['Calling', `${root}call/index.html`],
+    ['Settings', `${root}settings.html`],
+    ['Terms', `${root}terms.html`]
   ];
   const header = document.querySelector('header');
   if (!header) return;
@@ -15,12 +17,13 @@
   inner.classList.add('site-header-inner');
   const wrap = document.createElement('div');
   wrap.className = 'site-menu-wrap';
-  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile page' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
+  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav><button id="siteLogout" class="site-menu-logout" type="button">Log out</button></aside>`;
   document.body.append(wrap);
   const button = wrap.querySelector('.profile-menu-button');
   const icon = wrap.querySelector('.profile-menu-icon');
   const avatarImage = wrap.querySelector('.profile-menu-avatar');
   const profileLink = wrap.querySelector('#profileMenuLink');
+  const logout = wrap.querySelector('#siteLogout');
   const setAvatar = (photoURL, displayName) => {
     if (photoURL) {
       avatarImage.src = photoURL;
@@ -61,6 +64,10 @@
         if (snapshot.exists()) profile = snapshot.data();
       } catch {}
       setAvatar(profile.photoURL || user.photoURL, profile.displayName || user.displayName);
+    });
+    logout.addEventListener('click', async () => {
+      await getAuth(app).signOut();
+      location.href = `${root}messaging/index.html`;
     });
   }).catch(() => {});
   const close = () => { wrap.classList.remove('is-open'); button.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); };
