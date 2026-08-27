@@ -12,7 +12,7 @@
   back.innerHTML = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span class="sr-only">Back</span>';
   back.setAttribute('aria-label', 'Back to conversations');
   back.hidden = true;
-  header.prepend(back);
+  header.parentElement.prepend(back);
 
   const setFocusMode = (active) => {
     sidebar.classList.toggle('hidden', active);
