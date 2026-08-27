@@ -18,6 +18,42 @@
   wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon">R</span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}">${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
   inner.append(wrap);
   const button = wrap.querySelector('.profile-menu-button');
+  const icon = wrap.querySelector('.profile-menu-icon');
+  const setAvatar = (photoURL, displayName) => {
+    if (photoURL) {
+      icon.innerHTML = '';
+      const image = document.createElement('img');
+      image.src = photoURL;
+      image.alt = '';
+      icon.append(image);
+    } else {
+      icon.textContent = (displayName || 'R').trim()[0].toUpperCase();
+    }
+  };
+  import('https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js').then(async ({ getApp, getApps, initializeApp }) => {
+    const app = getApps().length ? getApp() : initializeApp({
+      apiKey: 'AIzaSyB7ssl6jTxKdy9XAtsAcrcvTU6eQjZzzQ8',
+      authDomain: 'relayless-messages.firebaseapp.com',
+      projectId: 'relayless-messages',
+      storageBucket: 'relayless-messages.firebasestorage.app',
+      messagingSenderId: '157252473726',
+      appId: '1:157252473726:web:7a2e2794c92dce7c49592f',
+      measurementId: 'G-6WZGL34YLC'
+    });
+    const [{ getAuth, onAuthStateChanged }, { getFirestore, doc, getDoc }] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js')
+    ]);
+    onAuthStateChanged(getAuth(app), async user => {
+      if (!user) return setAvatar('', 'R');
+      let profile = {};
+      try {
+        const snapshot = await getDoc(doc(getFirestore(app), 'users', user.uid));
+        if (snapshot.exists()) profile = snapshot.data();
+      } catch {}
+      setAvatar(profile.photoURL || user.photoURL, profile.displayName || user.displayName);
+    });
+  }).catch(() => {});
   const close = () => { wrap.classList.remove('is-open'); button.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); };
   button.addEventListener('click', () => { const open = wrap.classList.toggle('is-open'); button.setAttribute('aria-expanded', String(open)); document.body.classList.toggle('menu-open', open); });
   wrap.querySelectorAll('[data-menu-close]').forEach(item => item.addEventListener('click', close));
