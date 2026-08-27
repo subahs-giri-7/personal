@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Relayless | Share offline</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script>
       tailwind.config = { theme: { extend: { colors: { ink: '#0b1017', panel: '#111925', line: '#263447', cyan: '#69d7d0', amber: '#f4b860' }, fontFamily: { sans: ['DM Sans', 'ui-sans-serif', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] } } } };
     </script>
@@ -183,7 +184,8 @@
           peer: null,
           connection: null,
           selectedFiles: [],
-          incoming: []
+          incoming: [],
+          pendingCode: null
         };
 
         const $ = (id) => document.getElementById(id);
@@ -358,9 +360,10 @@
         function startSenderMode() {
           showRole('sender');
           state.code = makeCode();
+          state.pendingCode = null;
           els.shareCode.textContent = state.code;
           if (state.peer) state.peer.destroy();
-          state.peer = new Peer(state.code);
+          state.peer = new Peer(state.code, { host: '0.peerjs.com', port: 443, secure: true, debug: 1 });
           state.peer.on('open', () => {
             status('Sender ready. Share this code with a nearby receiver.', 'success');
           });
@@ -370,24 +373,38 @@
 
         function startReceiverMode() {
           showRole('receiver');
+          state.pendingCode = null;
           if (state.peer) state.peer.destroy();
-          state.peer = new Peer();
+          state.peer = new Peer(undefined, { host: '0.peerjs.com', port: 443, secure: true, debug: 1 });
+
           state.peer.on('open', () => {
             status('Receiver ready. Enter the sender code.', 'success');
+            if (state.pendingCode) {
+              pairReceiver(state.pendingCode);
+            }
           });
           state.peer.on('error', (error) => status(`Peer error: ${error.type}`, 'error'));
         }
 
-        function pairReceiver() {
-          const code = els.receiverCode.value.trim();
+        function pairReceiver(codeOverride = null) {
+          const code = (codeOverride ?? els.receiverCode.value.trim());
           if (!/^\d{6}$/.test(code)) {
             status('Enter a six-digit code.', 'error');
             return;
           }
-          if (!state.peer || !state.peer.open) {
-            status('Peer network is not ready yet.', 'error');
+
+          if (!state.peer) {
+            status('Peer network is not ready yet. Please try again in a moment.', 'error');
             return;
           }
+
+          if (!state.peer.open) {
+            state.pendingCode = code;
+            status('Preparing the local peer network. Please wait a moment...', 'normal');
+            return;
+          }
+
+          state.pendingCode = null;
           const conn = state.peer.connect(code, { reliable: true });
           setupPeerConnection(conn);
           status('Attempting to connect to sender...', 'normal');
@@ -425,7 +442,7 @@
             status('Copy failed. You can still read the code on screen.', 'error');
           }
         });
-        els.pairReceiver.addEventListener('click', pairReceiver);
+        els.pairReceiver.addEventListener('click', () => pairReceiver());
         els.receiverCode.addEventListener('keydown', (event) => {
           if (event.key === 'Enter') pairReceiver();
         });
