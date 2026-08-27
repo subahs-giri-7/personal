@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-menu.css" />
     <style>
       .posts-page {
         min-height: 100vh;
@@ -184,6 +185,7 @@
         .posts-layout { display: flex; flex-direction: column; gap: 22px; }
         .posts-feed { width: 100%; }
         .post-composer { position: static; order: -1; width: 100%; }
+        .posts-page > header { position: sticky; top: 0; z-index: 20; }
     </style>
   </head>
   <body class="posts-page">
@@ -193,7 +195,7 @@
       >
         <a href="index.html" class="site-brand"
           ><img src="logo.png" alt="Relayless logo" /><span
-            ><strong class="block text-sm">Relayless</strong
+            ><strong class="block text-sm">Relayless Messenger</strong
             ><small>Posts and conversations</small></span
           ></a
         >
@@ -604,5 +606,6 @@
         { childList: true, subtree: true },
       );
     </script>
+  <script src="site-menu.js"></script>
   </body>
 </html>

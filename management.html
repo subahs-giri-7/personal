@@ -27,6 +27,7 @@
     .line-numbers { user-select: none; }
   </style>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="site-menu.css">
   <style>.light-page button span[class*="bg-cyan"]{color:#fff!important}</style>
 </head>
 <body class="light-page min-h-screen font-sans text-slate-200">
@@ -163,5 +164,6 @@
       try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (saved?.owner && saved?.repo && saved?.token) { state.credentials = saved; els.owner.value = saved.owner; els.repo.value = saved.repo; els.branch.value = saved.branch || 'main'; els.token.value = saved.token; els.configPanel.classList.add('hidden'); els.logout.classList.remove('hidden'); loadFiles(); } } catch { localStorage.removeItem(STORAGE_KEY); }
     })();
   </script>
+<script src="site-menu.js"></script>
 </body>
 </html>
