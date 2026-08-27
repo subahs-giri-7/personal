@@ -16,6 +16,7 @@
     <style>
       .posts-page {
         min-height: 100vh;
+        background: #edf1f5;
       }
       .posts-shell {
         width: min(100% - 32px, 1180px);
@@ -34,8 +35,8 @@
       .post-card {
         border: 1px solid var(--line);
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 18px 45px rgba(20, 42, 86, 0.08);
+        background: #f7f8fa;
+        box-shadow: 0 18px 45px rgba(20, 42, 86, 0.12);
       }
       .post-composer {
         position: sticky;
@@ -54,7 +55,7 @@
       .posts-page input,
       .posts-page textarea {
         border: 1px solid var(--line);
-        background: #f7f9fc;
+        background: #e9edf2;
         color: var(--ink);
         outline: none;
       }
@@ -66,31 +67,76 @@
       .post-media {
         display: block;
         width: 100%;
-        max-height: 560px;
+        max-height: 340px;
         object-fit: cover;
-        background: #f1f5fb;
+        background: #dce2e9;
+        cursor: zoom-in;
+      }
+      .post-viewer,
+      .share-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 2100;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(16, 19, 27, 0.76);
+      }
+      .post-viewer-card,
+      .share-panel-card {
+        width: min(100%, 720px);
+        max-height: calc(100vh - 40px);
+        overflow: auto;
+        border: 1px solid #cbd3dc;
+        border-radius: 16px;
+        background: #f7f8fa;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+      }
+      .post-viewer-media {
+        display: block;
+        width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+        background: #dce2e9;
+      }
+      .share-friend {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: left;
+      }
+      .share-friend:hover { background: #e4eaf0; }
+      .share-friend-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #dbe2eb; }
+      .share-friend-avatar-fallback { display: grid; place-items: center; color: #385879; font-weight: 800; }
+      .post-text-preview { cursor: zoom-in; }
+      .post-text-preview:hover { color: #315d8a; }
+      .post-viewer[hidden],
+      .share-panel[hidden] { display: none; }
       }
       .post-avatar {
         width: 42px;
         height: 42px;
         border-radius: 50%;
         object-fit: cover;
-        background: #e8efff;
+        background: #dbe2eb;
       }
       .post-avatar-fallback {
         display: grid;
         place-items: center;
-        color: var(--blue);
+        color: #385879;
         font-weight: 800;
       }
       .post-action {
-        color: #5d6470;
+        color: #596573;
       }
       .post-action:hover {
         color: var(--blue);
       }
       .post-action.active {
-        color: #1769ff;
+        color: #315d8a;
         font-weight: 700;
       }
       .comment-list {
@@ -110,14 +156,14 @@
         border: 1px dashed #b9c9e8;
         border-radius: 12px;
         padding: 10px 14px;
-        color: var(--blue);
+        color: #315d8a;
         font-size: 12px;
         font-weight: 700;
-        background: #f4f7ff;
+        background: #e8edf3;
       }
       .upload-label.has-file {
-        border-color: #7bb4ff;
-        background: #eef5ff;
+        border-color: #7693af;
+        background: #e1e8ef;
       }
       .post-status {
         min-height: 18px;
@@ -136,8 +182,8 @@
         width: 42px;
         height: 42px;
         border-radius: 13px;
-        background: #f0f6ff;
-        color: var(--blue);
+        background: #e4eaf0;
+        color: #315d8a;
         font-size: 24px;
       }
       .create-trigger {
@@ -256,6 +302,25 @@
       id="toast"
       class="fixed bottom-5 left-1/2 hidden -translate-x-1/2 rounded-full bg-slate-900 px-5 py-3 text-xs text-white"
     ></p>
+    <div id="postViewer" class="post-viewer" hidden>
+      <div class="post-viewer-card">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <strong id="viewerTitle" class="text-sm text-slate-900">Post</strong>
+          <button id="closeViewer" type="button" class="text-2xl leading-none text-slate-500" aria-label="Close full-size post">&times;</button>
+        </div>
+        <div id="viewerContent"></div>
+      </div>
+    </div>
+    <div id="sharePanel" class="share-panel" hidden>
+      <div class="share-panel-card p-5">
+        <div class="flex items-center justify-between">
+          <div><p class="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Share post</p><h2 class="mt-1 text-lg font-extrabold text-slate-900">Send to a conversation</h2></div>
+          <button id="closeShare" type="button" class="text-2xl leading-none text-slate-500" aria-label="Close share dialog">&times;</button>
+        </div>
+        <p id="shareStatus" class="mt-3 text-xs text-slate-500">Choose a friend.</p>
+        <div id="shareFriends" class="mt-3 space-y-1"></div>
+      </div>
+    </div>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
       import {
@@ -346,8 +411,9 @@
         return data.secure_url;
       }
       function avatar(profile) {
-        return profile?.photoURL
-          ? `<img class="post-avatar" src="${escape(profile.photoURL)}" alt="">`
+        const photoURL = profile?.photoURL || profile?.authorPhotoURL;
+        return photoURL
+          ? `<img class="post-avatar" src="${escape(photoURL)}" alt="">`
           : `<span class="post-avatar post-avatar-fallback">${escape((profile?.displayName || "R")[0].toUpperCase())}</span>`;
       }
       async function profile(uid) {
@@ -425,10 +491,15 @@
           : "Just now";
         const media = data.mediaUrl
           ? data.mediaType === "video"
-            ? `<video class="post-media" controls src="${escape(data.mediaUrl)}"></video>`
-            : `<img class="post-media" src="${escape(data.mediaUrl)}" alt="Post media" loading="lazy">`
+            ? `<video class="post-media" controls src="${escape(data.mediaUrl)}" data-view-media="${escape(data.mediaUrl)}"></video>`
+            : `<img class="post-media" src="${escape(data.mediaUrl)}" alt="Post media" loading="lazy" data-view-media="${escape(data.mediaUrl)}">`
           : "";
-        card.innerHTML = `<div class="flex items-center gap-3 p-5"><a href="profile.html?uid=${encodeURIComponent(data.authorId)}">${avatar(data)}</a><div class="min-w-0 flex-1"><a class="block truncate text-sm font-bold text-slate-900" href="profile.html?uid=${encodeURIComponent(data.authorId)}">${escape(data.authorName || "Relayless user")}</a><a class="block truncate text-xs text-blue-600" href="profile.html?uid=${encodeURIComponent(data.authorId)}">@${escape(data.authorUsername || "user")} · ${date}</a></div></div>${data.text ? `<p class="whitespace-pre-wrap px-5 pb-5 text-sm leading-6 text-slate-700">${escape(data.text)}</p>` : ""}${media}<div class="flex items-center gap-5 px-5 py-4 text-xs"><button class="post-action" data-action="react">Like <span>${data.reactionCount || 0}</span></button><button class="post-action" data-action="comments">Comment <span>${data.commentCount || 0}</span></button></div><div class="comment-list hidden px-5 pb-4"><div class="comments space-y-2"></div><form class="comment-form mt-3 flex gap-2"><input class="comment-input min-w-0 flex-1 rounded-full px-4 py-2 text-xs" maxlength="500" placeholder="Write a comment..."><button class="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white">Send</button></form></div>`;
+        card.innerHTML = `<div class="flex items-center gap-3 p-5"><a href="profile.html?uid=${encodeURIComponent(data.authorId)}">${avatar(data)}</a><div class="min-w-0 flex-1"><a class="block truncate text-sm font-bold text-slate-900" href="profile.html?uid=${encodeURIComponent(data.authorId)}">${escape(data.authorName || "Relayless user")}</a><a class="block truncate text-xs text-blue-600" href="profile.html?uid=${encodeURIComponent(data.authorId)}">@${escape(data.authorUsername || "user")} · ${date}</a></div></div>${data.text ? `<p class="post-text-preview whitespace-pre-wrap px-5 pb-5 text-sm leading-6 text-slate-700">${escape(data.text)}</p>` : ""}${media}<div class="flex items-center gap-5 px-5 py-4 text-xs"><button class="post-action" data-action="react">Like <span>${data.reactionCount || 0}</span></button><button class="post-action" data-action="comments">Comment <span>${data.commentCount || 0}</span></button><button class="post-action" data-action="share">Share</button></div><div class="comment-list hidden px-5 pb-4"><div class="comments space-y-2"></div><form class="comment-form mt-3 flex gap-2"><input class="comment-input min-w-0 flex-1 rounded-full px-4 py-2 text-xs" maxlength="500" placeholder="Write a comment..."><button class="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white">Send</button></form></div>`;
+        card.querySelectorAll('[data-view-media]').forEach((element) => {
+          element.addEventListener('click', () => openViewer(data, element.dataset.viewMedia));
+        });
+        card.querySelector('.post-text-preview')?.addEventListener('click', () => openViewer(data));
+        card.querySelector('[data-action="share"]').onclick = () => openShare(post);
         card.querySelector('[data-action="react"]').onclick = async () => {
           if (!viewer) {
             toast("Sign in to react.");
@@ -458,6 +529,48 @@
           addComment(event, post.id, card);
         return card;
       }
+      function openViewer(data, mediaUrl = "") {
+        $("viewerTitle").textContent = `@${data.authorUsername || "user"}`;
+        $("viewerContent").innerHTML = mediaUrl
+          ? data.mediaType === "video"
+            ? `<video class="post-viewer-media" controls autoplay src="${escape(mediaUrl)}"></video>`
+            : `<img class="post-viewer-media" src="${escape(mediaUrl)}" alt="Full-size post media">`
+          : `<p class="whitespace-pre-wrap p-6 text-sm leading-7 text-slate-700">${escape(data.text || "")}</p>`;
+        $("postViewer").hidden = false;
+      }
+      function closeViewer() { $("postViewer").hidden = true; $("viewerContent").replaceChildren(); }
+      async function openShare(post) {
+        if (!viewer) { toast("Sign in to share a post."); return; }
+        $("sharePanel").hidden = false;
+        $("shareFriends").innerHTML = '<p class="text-xs text-slate-500">Loading conversations...</p>';
+        try {
+          const ids = viewerProfile.conversations || [];
+          if (!ids.length) { $("shareFriends").innerHTML = '<p class="text-xs text-slate-500">No conversations yet.</p>'; return; }
+          const snap = await getDocs(query(collection(db, "users"), where("__name__", "in", ids.slice(0, 10))));
+          $("shareFriends").replaceChildren();
+          snap.forEach((item) => {
+            const friend = { uid: item.id, ...item.data() }, row = document.createElement("button");
+            row.className = "share-friend";
+            row.innerHTML = `${avatar(friend)}<span class="min-w-0 flex-1"><strong class="block truncate text-sm text-slate-900">${escape(friend.displayName || "Relayless user")}</strong><span class="text-xs text-blue-600">@${escape(friend.username || "user")}</span></span>`;
+            row.querySelector(".post-avatar").classList.add("share-friend-avatar");
+            row.onclick = () => sendPostToFriend(post, friend);
+            $("shareFriends").append(row);
+          });
+        } catch (error) { $("shareFriends").innerHTML = `<p class="text-xs text-rose-500">Could not load conversations: ${escape(error.message)}</p>`; }
+      }
+      async function sendPostToFriend(post, friend) {
+        $("shareStatus").textContent = `Sending to @${friend.username || "user"}...`;
+        try {
+          const chat = [viewer.uid, friend.uid].sort().join("_");
+          await addDoc(collection(db, "chats", chat, "messages"), { senderId: viewer.uid, type: "post", postId: post.id, postAuthor: post.data.authorName || "Relayless user", postUsername: post.data.authorUsername || "user", postText: post.data.text || "", postMediaUrl: post.data.mediaUrl || "", createdAt: serverTimestamp(), delivered: true, seen: false });
+          $("shareStatus").textContent = `Post sent to @${friend.username || "user"}.`;
+          toast("Post shared successfully.");
+        } catch (error) { $("shareStatus").textContent = error.message || "Could not share post."; }
+      }
+      $("closeViewer").onclick = closeViewer;
+      $("postViewer").onclick = (event) => { if (event.target.id === "postViewer") closeViewer(); };
+      $("closeShare").onclick = () => { $("sharePanel").hidden = true; };
+      $("sharePanel").onclick = (event) => { if (event.target.id === "sharePanel") $("sharePanel").hidden = true; };
       async function loadComments(postId, card) {
         const list = card.querySelector(".comments");
         list.replaceChildren();

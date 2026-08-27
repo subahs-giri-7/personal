@@ -15,22 +15,26 @@
   inner.classList.add('site-header-inner');
   const wrap = document.createElement('div');
   wrap.className = 'site-menu-wrap';
-  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon">R</span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile page' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
+  wrap.innerHTML = `<button class="profile-menu-button" type="button" aria-label="Open navigation menu" aria-expanded="false"><span class="profile-menu-icon"><img class="profile-menu-avatar" alt=""></span></button><div class="site-menu-backdrop" data-menu-close></div><aside class="site-menu" aria-label="Site navigation"><div class="site-menu-head"><div><strong>Relayless Messenger</strong><small>Navigate your workspace</small></div><button class="site-menu-close" type="button" aria-label="Close navigation menu" data-menu-close>&times;</button></div><nav>${links.map(([label, href]) => `<a href="${href}"${label === 'Profile page' ? ' id="profileMenuLink"' : ''}>${label}<span>&rarr;</span></a>`).join('')}</nav></aside>`;
   document.body.append(wrap);
   const button = wrap.querySelector('.profile-menu-button');
   const icon = wrap.querySelector('.profile-menu-icon');
+  const avatarImage = wrap.querySelector('.profile-menu-avatar');
   const profileLink = wrap.querySelector('#profileMenuLink');
   const setAvatar = (photoURL, displayName) => {
     if (photoURL) {
-      icon.innerHTML = '';
-      const image = document.createElement('img');
-      image.src = photoURL;
-      image.alt = '';
-      icon.append(image);
+      avatarImage.src = photoURL;
+      avatarImage.hidden = false;
+      icon.dataset.initial = '';
+      button.classList.add('has-profile-image');
     } else {
-      icon.textContent = (displayName || 'R').trim()[0].toUpperCase();
+      avatarImage.removeAttribute('src');
+      avatarImage.hidden = true;
+      icon.dataset.initial = (displayName || 'R').trim()[0].toUpperCase();
+      button.classList.remove('has-profile-image');
     }
   };
+  avatarImage.addEventListener('error', () => setAvatar('', 'R'));
   import('https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js').then(async ({ getApp, getApps, initializeApp }) => {
     const app = getApps().length ? getApp() : initializeApp({
       apiKey: 'AIzaSyB7ssl6jTxKdy9XAtsAcrcvTU6eQjZzzQ8',
