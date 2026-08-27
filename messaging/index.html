@@ -40,6 +40,32 @@
 	.light-page #authSwitch{color:#5d6470!important}
 </style>
 <style>.presence-dot{display:inline-block;width:9px;height:9px;border:2px solid #fff;border-radius:50%;background:#a8b0ba;vertical-align:middle}.presence-dot.online{background:#36b37e}.profile-id{cursor:pointer;text-decoration:none}.profile-id:hover{text-decoration:underline}</style>
+<style>
+	html,body{max-width:100%;overflow-x:hidden}
+	#app{width:100%;overflow:hidden}
+	@media(max-width:640px){
+		#app>header>div{padding-left:1rem!important;padding-right:1rem!important;gap:12px}
+		#app>header>div>div:first-child{min-width:0;max-width:65vw}
+		#app>header>div>div:first-child:before{width:34px;height:34px}
+		#app>header .flex.gap-4{flex-shrink:0;gap:10px}
+		#app>header .flex.gap-4 a,#app>header .flex.gap-4 button{font-size:11px;white-space:nowrap}
+		#app main{padding:1rem!important}
+		#workspaceNav{display:flex;max-width:100%;margin-bottom:1rem!important;padding:.4rem!important;overflow-x:auto;scrollbar-width:none}
+		#workspaceNav::-webkit-scrollbar{display:none}
+		#workspaceNav button{flex:0 0 auto;padding:.65rem .8rem}
+		.workspace-grid{display:flex;flex-direction:column;gap:1rem;width:100%;min-width:0}
+		.workspace-grid>aside{width:100%;min-width:0}
+		.workspace-grid>aside>form{width:100%;min-width:0}
+		.chat-panel{width:100%;min-width:0;min-height:calc(100dvh - 170px)!important;height:auto!important;border-radius:14px!important}
+		.chat-panel>div:first-child{min-width:0;gap:8px;padding:.85rem!important}
+		.chat-panel #chatTitle,.chat-panel #chatStatus{max-width:45vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+		.chat-panel #messages{min-width:0;overflow-x:hidden;padding:.85rem!important}
+		.chat-panel #composer{min-width:0;padding:.65rem!important}
+		.chat-panel #composer form{display:flex;align-items:center;gap:.4rem;min-width:0;padding:0!important}
+		.chat-panel #message{min-width:0;width:auto;flex:1}
+		.chat-panel #composer>button{flex:0 0 auto;padding:.65rem}
+	}
+</style>
 <body class="light-page min-h-screen font-sans text-slate-200">
 <div id="setup" class="mx-auto hidden min-h-screen max-w-xl px-5 py-12"><p class="text-xs uppercase tracking-[.2em] text-cyan-300">Relayless Messages</p><h1 class="mt-5 text-4xl font-semibold text-white">Set up your profile.</h1><p class="mt-4 text-sm leading-6 text-slate-400">Choose a unique username and password so other people can find you.</p><form id="profileForm" class="mt-8 rounded-xl border border-white/10 bg-[#181522] p-5"><label class="block text-xs text-slate-400">Email address<input id="profileEmail" required type="email" autocomplete="email" class="mt-2 w-full rounded-md bg-[#0d0c12] p-3 text-sm outline-none" placeholder="you@example.com"></label><label class="mt-4 block text-xs text-slate-400">Password<input id="profilePassword" required type="password" minlength="6" autocomplete="new-password" class="mt-2 w-full rounded-md bg-[#0d0c12] p-3 text-sm outline-none" placeholder="At least 6 characters"></label><label class="mt-4 block text-xs text-slate-400">Display name<input id="profileName" required class="mt-2 w-full rounded-md bg-[#0d0c12] p-3 text-sm outline-none"></label><label class="mt-4 block text-xs text-slate-400">Username<input id="profileUsername" required pattern="[a-zA-Z0-9_]{3,20}" autocomplete="username" class="mt-2 w-full rounded-md bg-[#0d0c12] p-3 text-sm outline-none" placeholder="your_username"></label><label class="mt-4 block text-xs text-slate-400">Gender<select id="profileGender" class="mt-2 w-full rounded-md bg-[#0d0c12] p-3 text-sm outline-none"><option value="">Prefer not to say</option><option value="Woman">Woman</option><option value="Man">Man</option><option value="Non-binary">Non-binary</option><option value="Other">Other</option></select></label><label class="mt-4 block text-xs text-slate-400">Profile image (optional)<input id="profileImage" type="file" accept="image/*" class="mt-2 w-full text-xs"></label><button class="mt-5 w-full rounded-md bg-cyan-300 p-3 text-sm font-bold text-[#111017]">Complete profile</button></form></div>
 <div id="auth" class="mx-auto hidden min-h-screen max-w-md px-5 py-20"><a href="../index.html" class="text-xs text-slate-500">&lt;- Relayless</a><p class="mt-12 text-xs uppercase tracking-[.2em] text-cyan-300">Private messaging</p><h1 id="authTitle" class="mt-4 text-4xl font-semibold text-white">Welcome back</h1><p class="mt-3 text-sm text-slate-400">Sign in with your username and password.</p><form id="authForm" class="mt-8"><input id="username" required pattern="[a-zA-Z0-9_]{3,20}" autocomplete="username" class="mb-3 w-full rounded-md bg-[#181522] p-3 text-sm" placeholder="Username"><input id="password" required type="password" minlength="6" autocomplete="current-password" class="w-full rounded-md bg-[#181522] p-3 text-sm" placeholder="Password"><button id="authButton" class="mt-4 w-full rounded-md bg-cyan-300 p-3 text-sm font-bold text-[#111017]">Sign in</button></form><button id="authSwitch" class="mt-5 text-xs text-slate-500">Create a new account</button><button id="forgotPassword" type="button" class="mt-3 block text-xs text-blue-600">Forgot password?</button></div>
