@@ -1,0 +1,8 @@
+import{getApp,getApps,initializeApp}from'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+import{getAuth,sendPasswordResetEmail}from'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import{getFirestore,doc,getDoc}from'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
+const config={apiKey:'AIzaSyB7ssl6jTxKdy9XAtsAcrcvTU6eQjZzzQ8',authDomain:'relayless-messages.firebaseapp.com',projectId:'relayless-messages',storageBucket:'relayless-messages.firebasestorage.app',messagingSenderId:'157252473726',appId:'1:157252473726:web:7a2e2794c92dce7c49592f'};
+const app=getApps().length?getApp():initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+const notify=(text,error=false)=>{const toast=$('toast');if(!toast)return;toast.textContent=text;toast.className=`fixed bottom-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs ${error?'border-rose-400/40 text-rose-300':'border-cyan-300/40 text-cyan-300'}`;setTimeout(()=>toast.classList.add('hidden'),3000)};
+$('authSwitch')?.addEventListener('click',()=>{$('auth').classList.add('hidden');$('setup').classList.remove('hidden')});
+$('forgotPassword')?.addEventListener('click',async()=>{const username=$('username').value.trim().toLowerCase();if(!username)return notify('Enter your username first.',true);try{const snapshot=await getDoc(doc(db,'usernames',username));const email=snapshot.data()?.email;if(!email)throw Error('No recovery email is available for this username.');await sendPasswordResetEmail(auth,email);notify('Password reset instructions sent to your recovery email.')}catch(error){notify(error.message.replace('Firebase: ',''),true)}});
