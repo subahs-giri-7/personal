@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Relayless | Share offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { ink: '#0b1017', panel: '#111925', line: '#263447', cyan: '#69d7d0', amber: '#f4b860' }, fontFamily: { sans: ['DM Sans', 'ui-sans-serif', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] } } } };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-menu.css" />
+    <style>
+      :root { color-scheme: light; }
+      body {
+        background: #f3f5f7;
+        background-image: linear-gradient(135deg, rgba(77, 136, 255, 0.06), transparent 38%), linear-gradient(315deg, rgba(255, 190, 92, 0.04), transparent 32%);
+      }
+      #offlinePanel {
+        background: #f2f3f4;
+        border-color: rgba(15, 23, 42, 0.12);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+      }
+      #senderBox, #receiverBox { display: grid; gap: 1.25rem; }
+      #senderBox > .rounded-xl,
+      #receiverBox > .rounded-xl {
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        background: rgba(255, 255, 255, 0.7);
+        color: #111827;
+        box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.12);
+      }
+      #senderBox .drop-zone {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 175px;
+        border: 2px dashed rgba(30, 66, 120, 0.529);
+        background: linear-gradient(135deg, #29476c, #2b3f60);
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        text-align: center;
+        transition: all 180ms ease;
+      }
+      #senderBox .drop-zone button {
+        color: #f0f9ff;
+        text-decoration: underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 2px;
+      }
+      .drop-zone.dragging {
+        border-color: rgba(52, 90, 100, 0.95);
+        background: linear-gradient(135deg, #2c4564, #225742);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+      }
+      #senderList { display: grid; gap: 0.75rem; }
+      .peer-item {
+        background: rgba(255,255,255,0.9);
+        border-color: rgba(15, 23, 42, 0.12);
+        color: #111827;
+        transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      }
+      .peer-item:hover { transform: translateY(-1px); border-color: rgba(63, 71, 87, 0.55); box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08); }
+      #senderBox .font-mono,
+      #receiverBox .font-mono,
+      #senderBox .text-slate-300,
+      #receiverBox .text-slate-300,
+      #senderBox .text-slate-400,
+      #receiverBox .text-slate-400,
+      #senderBox .text-slate-500,
+      #receiverBox .text-slate-500 {
+        color: #1f2937 !important;
+      }
+      #senderBox #shareCode,
+      #receiverBox #receiverCode {
+        color: #0f172a !important;
+      }
+    </style>
+  </head>
+  <body class="light-page min-h-screen font-sans text-slate-200">
+    <header class="border-b border-line bg-ink/90">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 lg:px-8">
+        <a href="index.html" class="site-brand">
+          <img src="logo.png" alt="Relayless Messenger logo" />
+          <span>
+            <strong class="block text-sm tracking-wide">Relayless Messenger</strong>
+            <small class="block text-xs">Offline LAN sharing</small>
+          </span>
+        </a>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-5 py-8 lg:px-8">
+      <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="mb-2 font-mono text-xs uppercase tracking-[.2em] text-cyan">Local network transfer</p>
+          <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Share files on the same Wi‑Fi / LAN</h1>
+        </div>
+        <a href="share.html" class="rounded-md border border-line px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-cyan hover:text-cyan">Back to share</a>
+      </div>
+
+      <section id="roleSelector" class="grid gap-5 md:grid-cols-2">
+        <button id="beSender" type="button" class="rounded-xl border border-line bg-panel/80 p-6 text-left transition hover:-translate-y-0.5 hover:border-cyan">
+          <span class="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-cyan/10 font-mono text-lg text-cyan">01</span>
+          <strong class="block text-lg text-white">Send files</strong>
+          <span class="mt-2 block text-sm leading-6 text-slate-400">Create a local share code and let nearby devices connect automatically.</span>
+        </button>
+        <button id="beReceiver" type="button" class="rounded-xl border border-line bg-panel/80 p-6 text-left transition hover:-translate-y-0.5 hover:border-amber">
+          <span class="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-amber/10 font-mono text-lg text-amber">02</span>
+          <strong class="block text-lg text-white">Receive files</strong>
+          <span class="mt-2 block text-sm leading-6 text-slate-400">Scan or enter the nearby sender code and pull files from the local network.</span>
+        </button>
+      </section>
+
+      <section id="offlinePanel" class="hidden mt-8 rounded-2xl border border-line bg-panel/80 p-5">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p id="roleLabel" class="font-mono text-[10px] uppercase tracking-[.18em] text-cyan">Offline mode</p>
+            <h2 id="stateTitle" class="mt-1 text-xl font-semibold text-white">Ready</h2>
+          </div>
+          <button id="leaveOffline" type="button" class="rounded-md border border-line px-3 py-2 text-xs font-semibold text-slate-400 transition hover:border-rose-400 hover:text-rose-400">Leave</button>
+        </div>
+
+        <div id="senderBox" class="hidden space-y-5">
+          <div class="rounded-xl border border-cyan/40 bg-cyan/5 p-4">
+            <p class="font-mono text-[10px] uppercase tracking-[.18em] text-cyan">Connection code</p>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <div id="shareCode" class="font-mono text-3xl tracking-[.35em] text-cyan">000000</div>
+              <button id="copyCode" type="button" class="rounded-md border border-line px-3 py-2 text-xs font-semibold text-slate-300 hover:border-cyan hover:text-cyan">Copy</button>
+            </div>
+            <p id="senderHint" class="mt-3 text-sm text-slate-400">Ask the other device to enter this code. Nearby devices are discovered automatically on the same local network.</p>
+          </div>
+
+          <div class="rounded-xl border border-line bg-ink/70 p-4">
+            <div class="mb-3 flex items-center justify-between">
+              <p class="font-mono text-[10px] uppercase tracking-[.18em] text-slate-400">Transfer queue</p>
+              <span id="senderFileCount" class="text-xs text-slate-500">0 files</span>
+            </div>
+            <input id="senderFiles" type="file" multiple class="hidden" />
+            <div id="dropZone" class="drop-zone rounded-xl border border-dashed border-cyan/40 bg-cyan/5 px-5 py-8 text-center text-sm text-slate-300">
+              Drag files here or <button id="selectFiles" type="button" class="font-semibold text-cyan underline">choose files</button>
+            </div>
+            <div id="senderList" class="mt-4 space-y-2"></div>
+          </div>
+        </div>
+
+        <div id="receiverBox" class="hidden space-y-5">
+          <div class="rounded-xl border border-amber/40 bg-amber/5 p-4">
+            <p class="font-mono text-[10px] uppercase tracking-[.18em] text-amber">Receiver</p>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <input id="receiverCode" type="text" maxlength="6" inputmode="numeric" placeholder="000000" class="w-44 rounded-md border border-line bg-ink px-3 py-3 font-mono text-xl tracking-[.3em] text-white outline-none focus:border-cyan" />
+              <button id="pairReceiver" type="button" class="rounded-md bg-amber px-4 py-2 text-sm font-bold text-ink">Pair</button>
+            </div>
+            <p class="mt-3 text-sm text-slate-400">If the sender is on the same LAN, the code is enough to find the device automatically.</p>
+          </div>
+
+          <div class="rounded-xl border border-line bg-ink/70 p-4">
+            <div class="mb-3 flex items-center justify-between">
+              <p class="font-mono text-[10px] uppercase tracking-[.18em] text-slate-400">Incoming files</p>
+              <span id="receiverFileCount" class="text-xs text-slate-500">0 files</span>
+            </div>
+            <div id="receiverList" class="space-y-2">
+              <p class="rounded-lg border border-dashed border-line px-4 py-8 text-center text-xs leading-5 text-slate-500">No files yet. Once the sender pairs, the incoming items will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p id="offlineStatus" class="mt-5 text-xs text-slate-500">Choose a role to begin offline sharing.</p>
+    </main>
+
+    <script>
+      (() => {
+        const state = {
+          role: null,
+          code: null,
+          peers: [],
+          socket: null,
+          peer: null,
+          connection: null,
+          selectedFiles: [],
+          incoming: []
+        };
+
+        const $ = (id) => document.getElementById(id);
+        const els = {
+          roleSelector: $('roleSelector'),
+          beSender: $('beSender'),
+          beReceiver: $('beReceiver'),
+          offlinePanel: $('offlinePanel'),
+          senderBox: $('senderBox'),
+          receiverBox: $('receiverBox'),
+          roleLabel: $('roleLabel'),
+          stateTitle: $('stateTitle'),
+          shareCode: $('shareCode'),
+          copyCode: $('copyCode'),
+          receiverCode: $('receiverCode'),
+          pairReceiver: $('pairReceiver'),
+          senderFiles: $('senderFiles'),
+          selectFiles: $('selectFiles'),
+          senderList: $('senderList'),
+          senderFileCount: $('senderFileCount'),
+          receiverList: $('receiverList'),
+          receiverFileCount: $('receiverFileCount'),
+          leaveOffline: $('leaveOffline'),
+          offlineStatus: $('offlineStatus'),
+          dropZone: $('dropZone')
+        };
+
+        const status = (message, kind = 'normal') => {
+          els.offlineStatus.textContent = message;
+          els.offlineStatus.className = `mt-5 text-xs ${kind === 'error' ? 'text-rose-400' : kind === 'success' ? 'text-cyan' : 'text-slate-500'}`;
+        };
+
+        const makeCode = () => String(Math.floor(100000 + Math.random() * 900000));
+
+        const formatBytes = (bytes) => {
+          if (bytes < 1024) return `${bytes} B`;
+          if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+          if (bytes < 1073741824) return `${(bytes / 1048576).toFixed(1)} MB`;
+          return `${(bytes / 1073741824).toFixed(2)} GB`;
+        };
+
+        function showRole(role) {
+          state.role = role;
+          els.roleSelector.classList.add('hidden');
+          els.offlinePanel.classList.remove('hidden');
+
+          const isSender = role === 'sender';
+          const isReceiver = role === 'receiver';
+
+          els.senderBox.classList.toggle('hidden', !isSender);
+          els.receiverBox.classList.toggle('hidden', !isReceiver);
+          els.senderBox.style.display = isSender ? 'grid' : 'none';
+          els.receiverBox.style.display = isReceiver ? 'grid' : 'none';
+
+          els.roleLabel.textContent = isSender ? 'Sender mode' : 'Receiver mode';
+          els.stateTitle.textContent = isSender ? 'Waiting for receiver' : 'Ready to pair';
+        }
+
+        function setPeerLog(label, value) {
+          if (value) status(label + value, 'success');
+        }
+
+        function renderSenderFiles() {
+          const files = state.selectedFiles;
+          els.senderFileCount.textContent = `${files.length} file${files.length === 1 ? '' : 's'}`;
+          els.senderList.innerHTML = '';
+          if (!files.length) {
+            els.senderList.innerHTML = '<p class="rounded-lg border border-dashed border-line px-4 py-6 text-center text-xs leading-5 text-slate-500">No files selected yet. Add a document, photo, or archive.</p>';
+            return;
+          }
+          files.forEach((file, index) => {
+            const row = document.createElement('div');
+            row.className = 'peer-item flex items-center justify-between gap-3 rounded-md border border-line bg-ink/60 px-3 py-2';
+            row.innerHTML = `
+              <div class="min-w-0">
+                <p class="truncate text-xs text-slate-300">${file.name}</p>
+                <p class="text-[10px] text-slate-500">${formatBytes(file.size)}</p>
+              </div>
+              <button type="button" class="rounded bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan hover:bg-cyan/20">Send</button>
+            `;
+            row.querySelector('button').addEventListener('click', () => sendSingleFile(file));
+            els.senderList.appendChild(row);
+          });
+        }
+
+        function renderReceiverFiles() {
+          els.receiverFileCount.textContent = `${state.incoming.length} file${state.incoming.length === 1 ? '' : 's'}`;
+          els.receiverList.innerHTML = '';
+          if (!state.incoming.length) {
+            els.receiverList.innerHTML = '<p class="rounded-lg border border-dashed border-line px-4 py-8 text-center text-xs leading-5 text-slate-500">No files yet. Once the sender pairs, the incoming items will appear here.</p>';
+            return;
+          }
+          state.incoming.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'peer-item flex items-center justify-between gap-3 rounded-md border border-line bg-ink/60 px-3 py-2';
+            row.innerHTML = `
+              <div class="min-w-0">
+                <p class="truncate text-xs text-slate-300">${item.name}</p>
+                <p class="text-[10px] text-slate-500">${formatBytes(item.size)}</p>
+              </div>
+              <button type="button" class="rounded bg-amber/10 px-2 py-1 text-[10px] font-semibold text-amber hover:bg-amber/20">Download</button>
+            `;
+            row.querySelector('button').addEventListener('click', () => downloadIncoming(item));
+            els.receiverList.appendChild(row);
+          });
+        }
+
+        function downloadIncoming(item) {
+          const url = URL.createObjectURL(item.blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = item.name;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          status(`${item.name} downloaded.`, 'success');
+        }
+
+        function sendMessage(payload) {
+          if (!state.connection || !state.connection.open) {
+            status('Connection is not ready yet.', 'error');
+            return false;
+          }
+          state.connection.send(payload);
+          return true;
+        }
+
+        async function sendSingleFile(file) {
+          if (!state.connection || !state.connection.open) {
+            status('Pair with another device first.', 'error');
+            return;
+          }
+          const buffer = await file.arrayBuffer();
+          const payload = {
+            kind: 'file',
+            name: file.name,
+            size: file.size,
+            type: file.type || 'application/octet-stream',
+            data: Array.from(new Uint8Array(buffer))
+          };
+          if (sendMessage(payload)) status(`${file.name} queued for transfer.`, 'success');
+        }
+
+        function handleIncomingMessage(message) {
+          if (!message || typeof message !== 'object') return;
+          if (message.kind === 'file') {
+            const bytes = new Uint8Array(message.data);
+            const blob = new Blob([bytes], { type: message.type });
+            const item = { name: message.name, size: message.size, type: message.type, blob };
+            state.incoming.push(item);
+            renderReceiverFiles();
+            status(`${message.name} received from LAN peer.`, 'success');
+          }
+        }
+
+        function setupPeerConnection(conn) {
+          state.connection = conn;
+          conn.on('open', () => {
+            status('Device paired successfully over local network.', 'success');
+            els.stateTitle.textContent = 'Connected';
+          });
+          conn.on('data', handleIncomingMessage);
+          conn.on('close', () => {
+            status('Connection closed.', 'error');
+            els.stateTitle.textContent = 'Disconnected';
+            state.connection = null;
+          });
+          conn.on('error', (error) => status(`Connection error: ${error.message}`, 'error'));
+        }
+
+        function startSenderMode() {
+          showRole('sender');
+          state.code = makeCode();
+          els.shareCode.textContent = state.code;
+          if (state.peer) state.peer.destroy();
+          state.peer = new Peer(state.code);
+          state.peer.on('open', () => {
+            status('Sender ready. Share this code with a nearby receiver.', 'success');
+          });
+          state.peer.on('connection', (conn) => setupPeerConnection(conn));
+          state.peer.on('error', (error) => status(`Peer error: ${error.type}`, 'error'));
+        }
+
+        function startReceiverMode() {
+          showRole('receiver');
+          if (state.peer) state.peer.destroy();
+          state.peer = new Peer();
+          state.peer.on('open', () => {
+            status('Receiver ready. Enter the sender code.', 'success');
+          });
+          state.peer.on('error', (error) => status(`Peer error: ${error.type}`, 'error'));
+        }
+
+        function pairReceiver() {
+          const code = els.receiverCode.value.trim();
+          if (!/^\d{6}$/.test(code)) {
+            status('Enter a six-digit code.', 'error');
+            return;
+          }
+          if (!state.peer || !state.peer.open) {
+            status('Peer network is not ready yet.', 'error');
+            return;
+          }
+          const conn = state.peer.connect(code, { reliable: true });
+          setupPeerConnection(conn);
+          status('Attempting to connect to sender...', 'normal');
+        }
+
+        function leaveSession() {
+          state.connection?.close();
+          state.peer?.destroy();
+          state.role = null;
+          state.code = null;
+          state.selectedFiles = [];
+          state.incoming = [];
+          els.offlinePanel.classList.add('hidden');
+          els.roleSelector.classList.remove('hidden');
+          els.senderBox.style.display = 'none';
+          els.receiverBox.style.display = 'none';
+          els.senderBox.classList.add('hidden');
+          els.receiverBox.classList.add('hidden');
+          els.shareCode.textContent = '000000';
+          els.receiverCode.value = '';
+          renderSenderFiles();
+          renderReceiverFiles();
+          status('Choose a role to begin offline sharing.');
+        }
+
+        els.beSender.addEventListener('click', startSenderMode);
+        els.beReceiver.addEventListener('click', startReceiverMode);
+        els.leaveOffline.addEventListener('click', leaveSession);
+        els.copyCode.addEventListener('click', async () => {
+          if (!state.code) return;
+          try {
+            await navigator.clipboard.writeText(state.code);
+            status('Code copied.', 'success');
+          } catch {
+            status('Copy failed. You can still read the code on screen.', 'error');
+          }
+        });
+        els.pairReceiver.addEventListener('click', pairReceiver);
+        els.receiverCode.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') pairReceiver();
+        });
+
+        els.selectFiles.addEventListener('click', () => els.senderFiles.click());
+        els.senderFiles.addEventListener('change', (event) => {
+          const files = [...event.target.files || []];
+          if (!files.length) return;
+          state.selectedFiles.push(...files);
+          renderSenderFiles();
+          status(`${files.length} file${files.length === 1 ? '' : 's'} added.`, 'success');
+          event.target.value = '';
+        });
+
+        ['dragenter', 'dragover'].forEach((eventName) => {
+          els.dropZone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            els.dropZone.classList.add('dragging');
+          });
+        });
+        ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+          els.dropZone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            els.dropZone.classList.remove('dragging');
+          });
+        });
+        els.dropZone.addEventListener('drop', (event) => {
+          const files = [...event.dataTransfer.files || []];
+          if (!files.length) return;
+          state.selectedFiles.push(...files);
+          renderSenderFiles();
+          status(`${files.length} file${files.length === 1 ? '' : 's'} dropped.`, 'success');
+        });
+
+        renderSenderFiles();
+        renderReceiverFiles();
+      })();
+    </script>
+
+    <script src="site-menu.js"></script>
+  </body>
+</html>
