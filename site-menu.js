@@ -12,6 +12,11 @@
     ['Terms', `${root}terms.html`]
   ];
   if (isLandingPage) return;
+  if (!document.body.classList.contains('posts-page')) {
+    const viewportStyle = document.createElement('style');
+    viewportStyle.textContent = 'html,body{height:100%;overflow:hidden}body>main{max-height:calc(100dvh - 78px);overflow:hidden}#app{height:100dvh;min-height:0;overflow:hidden}#app main{height:calc(100dvh - 78px);min-height:0;overflow:hidden}@media(max-width:640px){body>main{max-height:calc(100dvh - 64px)}#app main{height:calc(100dvh - 64px)}}';
+    document.head.append(viewportStyle);
+  }
   const header = document.querySelector('header');
   const inner = header ? (header.querySelector(':scope > div') || header) : null;
   if (inner) inner.classList.add('site-header-inner');
