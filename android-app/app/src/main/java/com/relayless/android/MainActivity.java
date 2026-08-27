@@ -12,6 +12,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebChromeClient;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -55,12 +57,45 @@ public class MainActivity extends Activity {
         settings.setLoadWithOverviewMode(false);
         settings.setUseWideViewPort(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setSupportMultipleWindows(true);
         webView.setBackgroundColor(Color.WHITE);
         webView.setWebViewClient(new RelaylessWebViewClient());
-        webView.setWebChromeClient(new android.webkit.WebChromeClient() {
+        webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 progress.setVisibility(newProgress < 100 ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, android.os.Message resultMsg) {
+                WebView popup = new WebView(MainActivity.this);
+                popup.setBackgroundColor(Color.WHITE);
+                popup.getSettings().setJavaScriptEnabled(true);
+                popup.getSettings().setDomStorageEnabled(true);
+                popup.getSettings().setSupportMultipleWindows(true);
+                popup.setWebViewClient(new RelaylessWebViewClient());
+                popup.setWebChromeClient(this);
+                popup.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
+                root.addView(popup);
+                popup.setTag("oauth-popup");
+                popup.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public void onCloseWindow(WebView window) {
+                        root.removeView(window);
+                        window.destroy();
+                    }
+                });
+                ((WebView.WebViewTransport) resultMsg.obj).setWebView(popup);
+                resultMsg.sendToTarget();
+                return true;
+            }
+
+            @Override
+            public void onCloseWindow(WebView window) {
+                if (window != webView) {
+                    root.removeView(window);
+                    window.destroy();
+                }
             }
         });
         webView.loadUrl(HOME_URL);
@@ -99,10 +134,20 @@ public class MainActivity extends Activity {
     }
 
     private class RelaylessWebViewClient extends WebViewClient {
+        private boolean isTrustedWebHost(Uri uri) {
+            String host = uri.getHost();
+            return "subahs-giri-7.github.io".equals(host)
+                    || "relayless-messages.firebaseapp.com".equals(host)
+                    || "accounts.google.com".equals(host)
+                    || "google.com".equals(host)
+                    || (host != null && host.endsWith(".google.com"))
+                    || (host != null && host.endsWith(".googleusercontent.com"));
+        }
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri uri = request.getUrl();
-            if ("subahs-giri-7.github.io".equals(uri.getHost())) return false;
+            if (isTrustedWebHost(uri)) return false;
             startActivity(new Intent(Intent.ACTION_VIEW, uri));
             return true;
         }
