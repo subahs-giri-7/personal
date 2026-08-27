@@ -13,6 +13,7 @@
   ];
   const header = document.querySelector('header');
   if (!header) return;
+  if (isLandingPage) return;
   const inner = header.querySelector(':scope > div') || header;
   if (!inner) return;
   inner.classList.add('site-header-inner');
